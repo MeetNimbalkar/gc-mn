@@ -8,12 +8,12 @@
     html, body {
       margin: 0;
       height: 100%;
-      overflow: hidden;
+      overflow: hidden; /* page won't scroll; the embed area can */
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: #fff;
     }
 
-    /* Top bar */
+    /* Fixed header */
     .top-bar {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -25,7 +25,7 @@
       box-sizing: border-box;
       background: #2e7d32;
       color: #fff;
-      z-index: 30;
+      z-index: 10;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
     .title {
@@ -46,137 +46,28 @@
     }
     .btn:hover { background: #f3f3f3; }
 
-    /* Views */
-    .view {
+    /* Embed wrapper below the header, fills viewport */
+    #embed-wrap {
       position: absolute;
       top: 56px; left: 0; right: 0; bottom: 0;
       height: calc(100vh - 56px);
-      display: none;
-    }
-    .view.active { display: block; }
-
-    /* Gate layout */
-    .gate {
-      display: grid;
-      grid-template-rows: 1fr auto; /* form content + footer area */
-      background: #fafafa;
-    }
-    .gate-main {
-      display: grid;
-      place-items: center;
-      padding: 24px;
       box-sizing: border-box;
-    }
-    .card {
-      width: min(520px, 92vw);
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .card h1 {
-      margin: 0 0 6px;
-      font-size: 18px;
-      color: #2e7d32;
-    }
-    .card p {
-      margin: 0 0 16px;
-      color: #333;
-    }
-    .field {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .field input[type="password"],
-    .field input[type="text"] {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid #d0d7de;
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-    }
-    .field input:focus {
-      border-color: #2e7d32;
-      box-shadow: 0 0 0 3px rgba(46,125,50,0.15);
-    }
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 10px;
-    }
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #333;
-      user-select: none;
-      cursor: pointer;
-    }
-    .action {
-      padding: 10px 14px;
-      border: 0;
-      border-radius: 8px;
-      background: #2e7d32;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .action:hover { background: #256a2a; }
-    .hint {
-      margin-top: 10px;
-      min-height: 18px;
-      font-size: 13px;
-      color: #c62828;
-    }
-
-    /* Footer (appears under both views) */
-    .footer {
-      color: #666;
-      font-size: 12px;
-      text-align: center;
-      padding: 10px 12px;
-      border-top: 1px solid #e8e8e8;
-      background: #fff;
-    }
-    .footer a { color: #2e7d32; text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
-
-    /* Gate uses its own footer area at the bottom of the screen */
-    .gate-footer {
-      display: block;
-    }
-
-    /* Embed area */
-    #embed-wrap {
-      position: absolute;
-      inset: 0;
       overflow: hidden;
     }
-    #scroll-host {
-      position: absolute;
-      inset: 0;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 0 0 16px 0;
-      box-sizing: border-box;
-    }
+
+    /* Responsive 16:9 container (matches your snippet’s 56.25% padding) */
     .responsive {
       position: relative;
-      width: min(1400px, 100%);
-      margin: 24px auto;
+      width: 100%;
       height: 0;
       padding-top: 56.25%; /* 16:9 */
       box-shadow: 0 2px 8px rgba(63,69,81,0.16);
-      border-radius: 8px;
+      margin-top: 1.6em;
+      margin-bottom: 0.9em;
       overflow: hidden;
-      background: #000;
+      border-radius: 8px;
+      will-change: transform;
+      background: #000; /* optional for letterboxing */
     }
     .responsive iframe {
       position: absolute;
@@ -186,149 +77,85 @@
       border: 0;
     }
 
-    /* Fullscreen */
+    /* Make the embed area itself scrollable if content exceeds viewport */
+    #scroll-host {
+      position: absolute;
+      inset: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fullscreen mode: hide header, fill screen with embed */
     .is-fs .top-bar { display: none; }
-    .is-fs .view { top: 0; height: 100vh; }
+    .is-fs #embed-wrap { top: 0; height: 100vh; }
   </style>
 </head>
 <body>
   <header class="top-bar">
     <div class="title">Green Chemisrty - By Meet Nimbalkar & Het Derashri</div>
-    <button id="fs-btn" class="btn" type="button" aria-label="Toggle Fullscreen">Full Screen</button>
+    <button id="fs-btn" class="btn" type="button">Full Screen</button>
   </header>
 
-  <!-- Password Gate View -->
-  <section id="gate-view" class="view gate active" aria-label="Password gate">
-    <div class="gate-main">
-      <div class="card" role="group" aria-labelledby="gate-title">
-        <h1 id="gate-title">Enter access password</h1>
-        <p>Access is restricted. Enter the password to continue.</p>
-
-        <div class="field">
-          <input
-            id="pwd"
-            name="pwd"
-            type="password"
-            inputmode="text"
-            autocomplete="off"
-            placeholder="Enter password"
-            aria-label="Password"
-            required
-          />
-        </div>
-
-        <div class="row">
-          <label class="toggle">
-            <input id="show" type="checkbox" />
-            <span>Show password</span>
-          </label>
-          <button id="go" class="action" type="button">Unlock</button>
-        </div>
-
-        <div id="hint" class="hint" role="alert" aria-live="polite"></div>
-      </div>
-    </div>
-
-    <!-- Footer under the first page (gate) -->
-    <footer class="footer gate-footer">
-      © 2025 Meet Nimbalkar & Het Derashri. All rights reserved. | Green Chemistry project. 
-    </footer>
-  </section>
-
-  <!-- Embed View (revealed after correct password) -->
-  <main id="embed-view" class="view" aria-label="Canva embed area">
-    <div id="embed-wrap">
-      <div id="scroll-host">
-        <div class="responsive">
-          <iframe
-            id="canva"
-            loading="lazy"
-            src="https://www.canva.com/design/DAGzJLLweaI/MsstF_yqDbHLiTvsjw86wQ/view?embed"
-            title="Green Chemistry - Meet Nimbalkar (Canva)"
-            allow="fullscreen"
-            allowfullscreen
-          ></iframe>
-        </div>
-
-        <!-- Optional footer under the embed content for consistency -->
-        <footer class="footer">
-          © 2025 Meet Nimbalkar & Het Derashri. All rights reserved. | Green Chemistry project.
-        </footer>
+  <main id="embed-wrap" aria-label="Canva embed area">
+    <div id="scroll-host">
+      <div class="responsive">
+        <iframe
+          loading="lazy"
+          src="https://www.canva.com/design/DAGzJLLweaI/MsstF_yqDbHLiTvsjw86wQ/view?embed"
+          title="Green Chemistry - Meet Nimbalkar (Canva)"
+          allow="fullscreen"
+          allowfullscreen
+        ></iframe>
       </div>
     </div>
   </main>
 
   <script>
-    // Client-side gate (basic). Password must match exactly, including spaces if any.
+    // Fullscreen toggle limited to the embed area
     (function () {
-      const PASS = 'meet@2010';
-
-      const gate = document.getElementById('gate-view');
-      const embed = document.getElementById('embed-view');
-      const input = document.getElementById('pwd');
-      const show = document.getElementById('show');
-      const go = document.getElementById('go');
-      const hint = document.getElementById('hint');
-
-      function unlockIfValid() {
-        const val = input.value;
-        if (val === PASS) {
-          gate.classList.remove('active');
-          embed.classList.add('active');
-          hint.textContent = '';
-          input.value = '';
-        } else {
-          hint.textContent = 'Incorrect password. Try again.';
-        }
-      }
-
-      show.addEventListener('change', () => {
-        input.type = show.checked ? 'text' : 'password';
-      });
-
-      go.addEventListener('click', unlockIfValid);
-
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') unlockIfValid();
-      });
-
-      // Fullscreen toggle for the embed view only
       const fsBtn = document.getElementById('fs-btn');
+      const wrap = document.getElementById('embed-wrap');
       const root = document.documentElement;
-      const fsTarget = document.getElementById('embed-view');
 
       const isFS = () =>
         document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
 
-      async function enterFS(el) {
+      const enterFS = async (el) => {
         try {
           if (el.requestFullscreen) await el.requestFullscreen();
           else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
           else if (el.msRequestFullscreen) await el.msRequestFullscreen();
         } catch {}
-      }
-      async function exitFS() {
+      };
+      const exitFS = async () => {
         try {
           if (document.exitFullscreen) await document.exitFullscreen();
           else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
           else if (document.msExitFullscreen) await document.msExitFullscreen();
         } catch {}
-      }
-      function syncFS() {
+      };
+      const syncUI = () => {
         const active = !!isFS();
         root.classList.toggle('is-fs', active);
         fsBtn.textContent = active ? 'Exit Full Screen' : 'Full Screen';
-      }
+      };
 
       fsBtn.addEventListener('click', async () => {
-        if (isFS()) await exitFS();
-        else await enterFS(fsTarget);
+        if (isFS()) await exitFS(); else await enterFS(wrap);
       });
       ['fullscreenchange','webkitfullscreenchange','msfullscreenchange'].forEach(evt =>
-        document.addEventListener(evt, syncFS)
+        document.addEventListener(evt, syncUI)
       );
-      syncFS();
+      syncUI();
     })();
   </script>
+
+  <!-- Optional source link under the embed (uncomment if needed)
+  <p style="padding: 0 16px 16px; margin: 0;">
+    <a href="https://www.canva.com/design/DAGzJLLweaI/MsstF_yqDbHLiTvsjw86wQ/view" target="_blank" rel="noopener">
+      Open on Canva
+    </a>
+  </p>
+  -->
 </body>
 </html>
